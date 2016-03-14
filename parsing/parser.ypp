@@ -7,6 +7,8 @@
 #include "global.hpp"
 #include "struct_builder.hpp"
 
+extern int yylex();
+
 extern int yyparse();
 extern FILE* cnfin;
 
@@ -41,58 +43,68 @@ Start:
 	SOURCE Schema TARGET Schema MAPPING Tgds
 	{
 		struct_builder::buildFileContent();
+		std::cerr << "Bouh" << std::endl;
 	}
 ;
 Schema:
 	Schema Relation
 	{
 		struct_builder::addRelation();
+		std::cerr << "Bouh" << std::endl;
 	}
 |
 	Relation
 	{
 		struct_builder::changeSchema();
 		struct_builder::addRelation();
+		std::cerr << "Bouh" << std::endl;
 	}
 ;
 Relation:
 	NAME LPAR Atts RPAR
 	{
 		struct_builder::constructRelation($1);
+		std::cerr << "Bouh" << std::endl;
 	}
 ;
 Atts:
 	Atts COMMA NAME
 	{
 		struct_builder::addAttribute($3);
+		std::cerr << "Bouh" << std::endl;
 	}
 |
 	NAME
 	{
 		struct_builder::addAttribute($1);
+		std::cerr << "Bouh" << std::endl;
 	}
 ;
 Tgds:
 	Tgds Tgd
 	{
 		struct_builder::addTgd();
+		std::cerr << "Bouh" << std::endl;
 	}
 |
 	Tgd
 	{
 		struct_builder::addTgd();
+		std::cerr << "Bouh" << std::endl;
 	}
 ;
 Tgd:
 	Query ARROW Query DOT
 	{
 		struct_builder::constructTgd();
+		std::cerr << "Bouh" << std::endl;
 	}
 ;
 Query:
 	Query COMMA Atom
 	{
 		struct_builder::addAtom();
+		std::cerr << "Bouh" << std::endl;
 	}
 |
 	Atom
@@ -100,34 +112,40 @@ Query:
 		// Change of query
 		struct_builder::changeQuery();
 		struct_builder::addAtom();
+		std::cerr << "Bouh" << std::endl;
 	}
 ;
 Atom:
 	NAME LPAR Args LPAR
 	{
 		struct_builder::constructAtom($1);
+		std::cerr << "Bouh" << std::endl;
 	}
 ;
 Args:
 	Args COMMA Value
 	{
 		struct_builder::addValue();
+		std::cerr << "Bouh" << std::endl;
 	}
 |
 	Value
 	{
 		struct_builder::addValue();
+		std::cerr << "Bouh" << std::endl;
 	}
 ;
 Value:
 	VARIABLE
 	{
 		struct_builder::constructValue($1);
+		std::cerr << "Bouh" << std::endl;
 	}
 |
 	CONSTANT
 	{
 		struct_builder::constructValue($1);
+		std::cerr << "Bouh" << std::endl;
 	}
 ;
 

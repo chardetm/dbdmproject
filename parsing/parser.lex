@@ -9,6 +9,7 @@
 
 extern int yylex();
 
+
 %}
 %option noyywrap
 
@@ -59,3 +60,13 @@ variable     ${name}
 
 
 %%
+
+
+//FIXME: does this work?
+int yylex() {
+	yyFlexLexer* fl = new yyFlexLexer();
+	while (fl->yylex() != 0)
+	return 0;
+}
+
+
