@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -36,30 +38,45 @@ std::ostream& operator<<(std::ostream& stream, const Schema& sc) {
 struct Value {
 	typedef std::string variable_t;
 	typedef int constant_t;
-	enum class Type {VARIABLE, CONSTANT};
+	enum class Type {VARIABLE, CONSTANT, NO_TYPE};
 	
-	Value(const variable_t& var) : type{Type::VARIABLE}, var_{var} {}
-	Value(constant_t cons) : type{Type::CONSTANT}, cons_{cons} {}
+	Value() : type_{Type::NO_TYPE} {}
 	
-	const Type type;
+	Value(const variable_t& var) : type_{Type::VARIABLE}, var_{var} {}
+	Value(constant_t cons) : type_{Type::CONSTANT}, cons_{cons} {}
+	
+	void set(const variable_t& var) {
+		type_ = Type::VARIABLE;
+		var_ = var;
+	}
+	
+	void set(constant_t cons) {
+		type_ = Type::CONSTANT;
+		cons_ = cons;
+	}
+	
+	Type type() const { return type_; }
 	const variable_t& asVariable() const {
-		assert(type == Type::VARIABLE);
+		assert(type_ == Type::VARIABLE);
 		return var_;
 	}
 	constant_t asConstant() const {
-		assert(type == Type::CONSTANT);
+		assert(type_ == Type::CONSTANT);
 		return cons_;
 	}
 private:
+	Type type_;
 	variable_t var_;
 	constant_t cons_;
 };
 
 std::ostream& operator<<(std::ostream& stream, const Value& val) {
-	if (val.type == Value::Type::CONSTANT) {
+	if (val.type() == Value::Type::CONSTANT) {
 		stream << val.asConstant();
-	} else {
+	} else if (val.type() == Value::Type::VARIABLE) {
 		stream << '$' << val.asVariable();
+	} else {
+		stream << "{no value}";
 	}
 	return stream;
 }
@@ -122,3 +139,8 @@ struct FileContent {
 	Schema target;
 	Mapping mapping;
 };
+
+std::ostream& operator<<(std::ostream& stream, const FileContent& fc) {
+	stream << "Source:" << std::endl << fc.source << std::endl << std::endl << "Target:" << std::endl << fc.target << std::endl << std::endl << "Mapping:" << fc.mapping;
+	return stream;
+}

@@ -1,10 +1,11 @@
 %{
 
-#include "parser.tab.h"
-#include "global.h"
+#include "parser.tab.hpp"
+#include "global.hpp"
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 
 extern int yylex();
 
@@ -41,15 +42,14 @@ variable     ${name}
 "." {return DOT;}
 
 {constant} {
-	yylval=atoi(yytext);
-	return CONSTANT;
+	yylval.number = atoi(yytext); return CONSTANT;
 }
 {variable} {
-	return VARIABLE;
+	yylval.string = strdup(yytext); return VARIABLE;
 }
 
 {name} {
-	return NAME;
+	yylval.string = strdup(yytext); return NAME;
 }
 
 {blanks} {}

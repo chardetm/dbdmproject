@@ -1,0 +1,139 @@
+%{
+
+#include <iostream>
+#include <string>
+#include <cstdlib>
+
+#include "global.hpp"
+#include "struct_builder.hpp"
+
+extern int yyparse();
+extern FILE* cnfin;
+
+/*
+extern void reportError(char *s);
+extern void reportError2();
+extern void init(long long v, long long c);
+extern void newClause();
+extern void addLit(long long lit);
+extern void addClause();
+extern void reportClauseVide();
+*/
+
+
+%}
+
+%token SOURCE TARGET MAPPING LPAR RPAR COMMA ARROW DOT
+
+%union
+{
+	int number;
+	char *string;
+}
+
+%token <number> CONSTANT
+%token <string> VARIABLE NAME
+
+%start Start
+%%
+
+Start:
+	SOURCE Schema TARGET Schema MAPPING Tgds
+	{
+		struct_builder::buildFileContent();
+	}
+;
+Schema:
+	Schema Relation
+	{
+		struct_builder::addRelation();
+	}
+|
+	Relation
+	{
+		struct_builder::changeSchema();
+		struct_builder::addRelation();
+	}
+;
+Relation:
+	NAME LPAR Atts RPAR
+	{
+		struct_builder::constructRelation($1);
+	}
+;
+Atts:
+	Atts COMMA NAME
+	{
+		struct_builder::addAttribute($3);
+	}
+|
+	NAME
+	{
+		struct_builder::addAttribute($1);
+	}
+;
+Tgds:
+	Tgds Tgd
+	{
+		struct_builder::addTgd();
+	}
+|
+	Tgd
+	{
+		struct_builder::addTgd();
+	}
+;
+Tgd:
+	Query ARROW Query DOT
+	{
+		struct_builder::constructTgd();
+	}
+;
+Query:
+	Query COMMA Atom
+	{
+		struct_builder::addAtom();
+	}
+|
+	Atom
+	{
+		// Change of query
+		struct_builder::changeQuery();
+		struct_builder::addAtom();
+	}
+;
+Atom:
+	NAME LPAR Args LPAR
+	{
+		struct_builder::constructAtom($1);
+	}
+;
+Args:
+	Args COMMA Value
+	{
+		struct_builder::addValue();
+	}
+|
+	Value
+	{
+		struct_builder::addValue();
+	}
+;
+Value:
+	VARIABLE
+	{
+		struct_builder::constructValue($1);
+	}
+|
+	CONSTANT
+	{
+		struct_builder::constructValue($1);
+	}
+;
+
+%%
+
+int yyerror(char *s) {
+	// Du code
+	std::cerr << "Error: " << std::string(s);
+}
