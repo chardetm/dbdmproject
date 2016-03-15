@@ -4,12 +4,12 @@ namespace struct_builder {
 	//TODO: Listes vides ??
 	
 	
-	void constructValue (int constant);
-	void constructValue (const char* str);
+	const Value& constructValue (int constant);
+	const Value& constructValue (const char* str);
 	
 	void addValue ();
 	
-	void constructAtom (const char* str);
+	const Atom& constructAtom (const char* str);
 	
 	void addAtom ();
 	
@@ -21,7 +21,7 @@ namespace struct_builder {
 	
 	void addAttribute (char* name);
 	
-	void constructRelation (char* name);
+	const Relation& constructRelation (char* name);
 	
 	void addRelation ();
 	

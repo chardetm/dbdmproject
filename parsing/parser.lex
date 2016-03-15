@@ -21,7 +21,7 @@ digit       [0-9]
 
 letter      [a-zA-Z]
 
-letter_or_digit [{letter}{digit}]
+letter_or_digit [a-zA-Z0-9]
 
 constant     {digit}+
 
@@ -64,9 +64,8 @@ variable     ${name}
 
 //FIXME: does this work?
 int yylex() {
-	yyFlexLexer* fl = new yyFlexLexer();
-	while (fl->yylex() != 0)
-	return 0;
+	static yyFlexLexer fl;
+	return fl.yylex();
 }
 
 

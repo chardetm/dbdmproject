@@ -6,6 +6,7 @@
 
 #include "global.hpp"
 #include "struct_builder.hpp"
+#include "../structures.hpp" // TODO: Remove
 
 extern int yylex();
 
@@ -43,68 +44,68 @@ Start:
 	SOURCE Schema TARGET Schema MAPPING Tgds
 	{
 		struct_builder::buildFileContent();
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Start" << std::endl;
 	}
 ;
 Schema:
 	Schema Relation
 	{
 		struct_builder::addRelation();
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Schema 1" << std::endl;
 	}
 |
 	Relation
 	{
 		struct_builder::changeSchema();
 		struct_builder::addRelation();
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Schema 2" << std::endl;
 	}
 ;
 Relation:
 	NAME LPAR Atts RPAR
 	{
-		struct_builder::constructRelation($1);
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Relation" << std::endl;
+		std::cerr << struct_builder::constructRelation($1) << std::endl;
 	}
 ;
 Atts:
 	Atts COMMA NAME
 	{
 		struct_builder::addAttribute($3);
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Atts 1" << std::endl;
 	}
 |
 	NAME
 	{
 		struct_builder::addAttribute($1);
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Atts 2" << std::endl;
 	}
 ;
 Tgds:
 	Tgds Tgd
 	{
 		struct_builder::addTgd();
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Tgds 1" << std::endl;
 	}
 |
 	Tgd
 	{
 		struct_builder::addTgd();
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Tgds 2" << std::endl;
 	}
 ;
 Tgd:
 	Query ARROW Query DOT
 	{
 		struct_builder::constructTgd();
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Tgd" << std::endl;
 	}
 ;
 Query:
 	Query COMMA Atom
 	{
 		struct_builder::addAtom();
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Query 1" << std::endl;
 	}
 |
 	Atom
@@ -112,40 +113,40 @@ Query:
 		// Change of query
 		struct_builder::changeQuery();
 		struct_builder::addAtom();
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Query 2" << std::endl;
 	}
 ;
 Atom:
 	NAME LPAR Args LPAR
 	{
 		struct_builder::constructAtom($1);
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Atom" << std::endl;
 	}
 ;
 Args:
 	Args COMMA Value
 	{
 		struct_builder::addValue();
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Args 1" << std::endl;
 	}
 |
 	Value
 	{
 		struct_builder::addValue();
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Args 2" << std::endl;
 	}
 ;
 Value:
 	VARIABLE
 	{
 		struct_builder::constructValue($1);
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Value 1" << std::endl;
 	}
 |
 	CONSTANT
 	{
 		struct_builder::constructValue($1);
-		std::cerr << "Bouh" << std::endl;
+		std::cerr << "Value 2" << std::endl;
 	}
 ;
 

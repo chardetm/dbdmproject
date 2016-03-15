@@ -24,23 +24,26 @@ namespace struct_builder {
 	FileContent fc;
 	
 
-	void constructValue (int constant) {
+	const Value& constructValue (int constant) {
 		val.set(static_cast<Value::constant_t>(constant));
+		return val;
 	}
 
-	void constructValue (const char* str) {
+	const Value& constructValue (const char* str) {
 		assert(*str != '\0');
 		val.set(static_cast<Value::variable_t>(static_cast<Value::variable_t>(str+1)));
+		return val;
 	}
 	
 	void addValue () {
 		args.push_back(val);
 	}
 	
-	void constructAtom (const char* str) {
+	const Atom& constructAtom (const char* str) {
 		atom.args.swap(args);
 		args.clear();
 		atom.name = std::string(str);
+		return atom;
 	}
 	
 	void addAtom () {
@@ -68,10 +71,11 @@ namespace struct_builder {
 		attributes.push_back(static_cast<Attribute>(name));
 	}
 	
-	void constructRelation (char* name) {
+	const Relation& constructRelation (char* name) {
 		relation.name = static_cast<std::string>(name);
 		relation.attributes.swap(attributes);
 		attributes.clear();
+		return relation;
 	}
 	
 	void addRelation () {

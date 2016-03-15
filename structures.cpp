@@ -11,6 +11,7 @@ std::ostream& operator<<(std::ostream& stream, const Relation& rel) {
 		}
 		stream << attr;
 	}
+	stream << ')';
 	return stream;
 }
 
@@ -43,6 +44,7 @@ std::ostream& operator<<(std::ostream& stream, const Atom& atom) {
 		}
 		stream << attr;
 	}
+	stream << ')';
 	return stream;
 }
 
