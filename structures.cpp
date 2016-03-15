@@ -74,6 +74,6 @@ std::ostream& operator<<(std::ostream& stream, const Mapping& mapping) {
 }
 
 std::ostream& operator<<(std::ostream& stream, const FileContent& fc) {
-	stream << "Source:" << std::endl << fc.source << std::endl << std::endl << "Target:" << std::endl << fc.target << std::endl << std::endl << "Mapping:" << fc.mapping;
+	stream << "Source:" << std::endl << fc.source << std::endl << "Target:" << std::endl << fc.target << std::endl << "Mapping:" << std::endl << fc.mapping;
 	return stream;
 }

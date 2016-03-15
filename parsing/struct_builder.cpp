@@ -6,6 +6,7 @@
 #include "../structures.hpp"
 
 extern int yyparse();
+extern bool verbose_parser;
 
 namespace struct_builder {
 	
@@ -55,11 +56,12 @@ namespace struct_builder {
 		qs = !qs;
 	}
 	
-	void constructTgd () {
+	const Tgd& constructTgd () {
 		tgd.from.swap(queries.at(1));
 		queries.at(1).clear();
 		tgd.to.swap(queries.at(0));
 		queries.at(0).clear();
+		return tgd;
 	}
 	
 	void addTgd () {
@@ -79,7 +81,7 @@ namespace struct_builder {
 	}
 	
 	void addRelation () {
-		schemas.at(qs?1:0).push_back(std::move(relation));
+		schemas.at(ss?1:0).push_back(std::move(relation));
 		relation = Relation();
 	}
 	
@@ -87,19 +89,24 @@ namespace struct_builder {
 		ss = !ss;
 	}
 	
-	void buildFileContent () {
-		fc.source.swap(schemas.at(1));
-		schemas.at(1).clear();
-		fc.target.swap(schemas.at(0));
+	const FileContent& buildFileContent () {
+		fc.source.swap(schemas.at(0));
 		schemas.at(0).clear();
+		fc.target.swap(schemas.at(1));
+		schemas.at(1).clear();
 		fc.mapping.swap(tgds);
 		tgds.clear();
+		return fc;
 	}
 
 }
 
 
-FileContent& parseFile() {
+FileContent& parseFile(bool verbose) {
+	verbose_parser = verbose;
+	if (verbose) {
+		std::cerr << "===== VERBOSE PARSING ======" << std::endl << std::endl;
+	}
 	yyparse();
 	return struct_builder::fc;
 }

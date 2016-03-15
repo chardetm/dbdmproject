@@ -15,7 +15,7 @@ namespace struct_builder {
 	
 	void changeQuery ();
 	
-	void constructTgd ();
+	const Tgd& constructTgd ();
 	
 	void addTgd ();
 	
@@ -27,8 +27,8 @@ namespace struct_builder {
 	
 	void changeSchema ();
 	
-	void buildFileContent ();
+	const FileContent& buildFileContent ();
 
 }
 
-FileContent& parseFile();
+FileContent& parseFile(bool verbose=false);
