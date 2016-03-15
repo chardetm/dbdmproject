@@ -21,24 +21,48 @@ std::ostream& operator<<(std::ostream& stream, const Schema& sc);
 struct Value {
 	typedef std::string variable_t;
 	typedef int constant_t;
-	enum class Type {VARIABLE, CONSTANT, NO_TYPE};
+	enum class Type {VARIABLE, CONSTANT, SKOLEM, NO_TYPE};
+	struct SkolemReturnType {
+		const std::string& name;
+		const std::vector<Value>& values;
+	};
 	
 	Value() : type_{Type::NO_TYPE} {}
 	
-	Value(const variable_t& var) : type_{Type::VARIABLE}, var_{var} {}
+	// Variable constructor
+	Value(variable_t var) : type_{Type::VARIABLE}, var_{std::move(var)} {}
+	// Constant constructor
 	Value(constant_t cons) : type_{Type::CONSTANT}, cons_{cons} {}
+	// Skolem term constructor
+	Value(std::string name, std::vector<Value> values) : type_{Type::SKOLEM}, name_{std::move(name)}, values_{std::move(values)} {}
 	
-	void set(const variable_t& var) {
+	// Variable setter
+	void set(variable_t var) {
 		type_ = Type::VARIABLE;
-		var_ = var;
+		var_ = std::move(var);
+		name_.clear();
+		values_.clear();
 	}
 	
+	// Constant setter
 	void set(constant_t cons) {
 		type_ = Type::CONSTANT;
 		cons_ = cons;
+		var_.clear();
+		name_.clear();
+		values_.clear();
+	}
+	
+	// Skolem term setter
+	void set(std::string name, std::vector<Value> values) {
+		type_ = Type::SKOLEM;
+		var_.clear();
+		name_ = std::move(name);
+		values_ = std::move(values);
 	}
 	
 	Type type() const { return type_; }
+	
 	const variable_t& asVariable() const {
 		assert(type_ == Type::VARIABLE);
 		return var_;
@@ -47,10 +71,17 @@ struct Value {
 		assert(type_ == Type::CONSTANT);
 		return cons_;
 	}
+	const SkolemReturnType asSkolem() const {
+		assert(type_ == Type::SKOLEM);
+		return {name_, values_};
+	}
+	
 private:
 	Type type_;
 	variable_t var_;
 	constant_t cons_;
+	std::string name_;
+	std::vector<Value> values_;
 };
 
 std::ostream& operator<<(std::ostream& stream, const Value& val);

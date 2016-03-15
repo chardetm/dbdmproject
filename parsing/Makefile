@@ -1,7 +1,10 @@
 OPT= -g
 STD= -std=c++11
 
-all: parser.tab.o lex.yy.o struct_builder.o
+all: parser.o
+
+parser.o: parser.tab.o lex.yy.o struct_builder.o
+	ld -r parser.tab.o lex.yy.o struct_builder.o -o parser.o
 
 parser.tab.cpp parser.tab.hpp: parser.ypp
 	bison -d parser.ypp
@@ -19,6 +22,6 @@ struct_builder.o: struct_builder.cpp struct_builder.hpp ../structures.hpp
 	g++ $(OPT) $(STD) -c struct_builder.cpp
 
 clean:
-	rm -f parser.tab.cpp parser.tab.hpp lex.yy.cc parser.tab.o lex.yy.o struct_builder.o
+	rm -f parser.tab.cpp parser.tab.hpp lex.yy.cc parser.tab.o lex.yy.o struct_builder.o parser.o
 
 .PHONY: clean
