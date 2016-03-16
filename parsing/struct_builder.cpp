@@ -57,10 +57,10 @@ namespace struct_builder {
 	}
 	
 	const Tgd& constructTgd () {
-		tgd.from.swap(queries.at(1));
-		queries.at(1).clear();
-		tgd.to.swap(queries.at(0));
+		tgd.from.swap(queries.at(0));
 		queries.at(0).clear();
+		tgd.to.swap(queries.at(1));
+		queries.at(1).clear();
 		return tgd;
 	}
 	
