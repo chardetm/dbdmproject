@@ -26,13 +26,13 @@ namespace struct_builder {
 	
 
 	const Value& constructValue (int constant) {
-		val.set(static_cast<Value::constant_t>(constant));
+		val.set(static_cast<constant_t>(constant));
 		return val;
 	}
 
 	const Value& constructValue (const char* str) {
 		assert(*str != '\0');
-		val.set(static_cast<Value::variable_t>(static_cast<Value::variable_t>(str+1)));
+		val.set(static_cast<variable_t>(static_cast<variable_t>(str+1)));
 		return val;
 	}
 	

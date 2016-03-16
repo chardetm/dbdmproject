@@ -62,7 +62,7 @@ variable     ${name}
 %%
 
 
-//FIXME: does this work?
+
 int yylex() {
 	static yyFlexLexer fl;
 	return fl.yylex();

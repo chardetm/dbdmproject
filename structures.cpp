@@ -1,5 +1,7 @@
 #include "structures.hpp"
 
+unsigned long long Tgd::current_skolem_{0};
+
 std::ostream& operator<<(std::ostream& stream, const Relation& rel) {
 	stream << rel.name << '(';
 	bool first{true};
@@ -27,6 +29,19 @@ std::ostream& operator<<(std::ostream& stream, const Value& val) {
 		stream << val.asConstant();
 	} else if (val.type() == Value::Type::VARIABLE) {
 		stream << '$' << val.asVariable();
+	} else if (val.type() == Value::Type::SKOLEM) {
+		Value::SkolemReturnType sk = val.asSkolem();
+		stream << sk.name << '_' << sk.free_name << '(';
+		bool first{true};
+		for (auto &e : sk.values) {
+			if (first) {
+				first = false;
+			} else {
+				stream << ',';
+			}
+			stream << e;
+		}
+		stream << ')';
 	} else {
 		stream << "{no value}";
 	}
