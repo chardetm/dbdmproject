@@ -4,7 +4,7 @@ STD= -std=c++11
 all: main
 
 main: main.o structures.o utils.o parsing/parser.o
-	g++ $(OPT) $(STD) -std=c++11 main.o structures.o utils.o parsing/parser.o -o main
+	g++ $(OPT) $(STD) -std=c++11 main.o structures.o utils.o parsing/parser.o -lsqlite3 -o main
 
 main.o: main.cpp structures.hpp parsing/struct_builder.hpp
 	g++ $(OPT) $(STD) -c main.cpp
