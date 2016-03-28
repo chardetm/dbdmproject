@@ -299,11 +299,16 @@ struct Tgd {
 				stream << fromAtom.name << std::endl;
 				if (first) {
 					first = false;
+					done.insert(fromAtom.name);
 					continue;
 				}
 				bool first2{true};
+				argId = 0;
 				for (const Value& arg : fromAtom.args) {
-					if (arg.type() != Value::Type::VARIABLE) continue;
+					if (arg.type() != Value::Type::VARIABLE) {
+						++argId;
+						continue;
+					}
 					auto range = varBnds.equal_range(arg.asVariable());
 					if (range.first == varBnds.end()) {
 						throw std::logic_error("Logic error while computing SQL: Variable is not bound...");
@@ -318,10 +323,11 @@ struct Tgd {
 							} else {
 								stream << tabs(2) << "AND ";
 							}
-							stream << fromAtom.name << "." << arg.asVariable() << " = " << otherRelation << "." << fromSchema.at(otherRelation).attributes.at(otherId) << std::endl;
+							stream << fromAtom.name << "." << fromSchema.at(fromAtom.name).attributes.at(argId) << " = " << otherRelation << "." << fromSchema.at(otherRelation).attributes.at(otherId) << std::endl;
 							break;
 						}
 					}
+					++argId;
 				}
 				if (!first2) { // Found something, "ON (" is open, must close with ")"
 					stream << tabs() << ")" << std::endl;
