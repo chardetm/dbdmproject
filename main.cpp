@@ -1,58 +1,52 @@
 #include <iostream>
-
+#include <string>
+#include "utils.hpp"
 #include "structures.hpp"
 #include "parsing/struct_builder.hpp"
 
 using namespace std;
 
-template <class SetType>
-std::ostream& printSet(std::ostream& stream, const SetType& set, string prefix="", string suffix="") {
-	bool first{true};
-	for (const auto &v : set) {
-		if (first) {
-			first = false;
-		} else {
-			cout << ", ";
-		}
-		cout << prefix << v << suffix;
-	}
-	return stream;
-}
-
-template <class MapType>
-std::ostream& printMapKeys(std::ostream& stream, const MapType& map, string prefix="", string suffix="") {
-	bool first{true};
-	for (const auto &p : map) {
-		if (first) {
-			first = false;
-		} else {
-			cout << ", ";
-		}
-		cout << prefix << p.first << suffix;
-	}
-	return stream;
-}
-
 int main (int argc, char *argv[]) {
-	FileContent& fc = parseFile();
-	cerr << "====== FILE PARSED ======" << endl << endl << fc << endl << "====== END OF FILE ======" << endl;
-	cout << endl;
-	for (Tgd &tgd : fc.mapping) {
-		cout << "==" << endl << tgd << endl;
-                auto vars = tgd.freeBoundVariables();
-		printSet(cout << "  Free variables : ", vars.free , "$") << endl;
-		printSet(cout << "  Bound variables: ", vars.bound, "$") << endl;
-		cout << "== Skolemize ==" << endl;
-		tgd.skolemize();
-		cout << tgd << endl;
-		cout << "  Bounds: ";
-		for (const auto &p : tgd.varBounders()) {
-			cout << '{' << p.first << ": " << p.second.rel << ',' << p.second.id << "} "; 
+	bool verbose{false};
+	std::string sqlite3;
+	for (int i=1; i<argc; ++i) {
+		if (string(argv[i]) == "-verbose") {
+			verbose = true;
+		} else if (string(argv[i]) == "-sqlite3") {
+			sqlite3 = argv[++i];
+		} else {
+			cerr << "Warning: unrecognized argument \"" << argv[i] << "\"!" << std::endl;
 		}
-		cout << endl;
-		cout << "== SQL ==" << endl;
+	}
+	
+	FileContent& fc = parseFile();
+	if (verbose) {
+		cerr << "====== FILE PARSED ======" << endl << endl << fc << endl << "====== END OF FILE ======" << endl;
+		cerr << endl;
+	}
+	for (Tgd &tgd : fc.mapping) {
+		if (verbose) {
+			cerr << "==" << endl << tgd << endl;
+			auto vars = tgd.freeBoundVariables();
+			printSet(cerr << "  Free variables : ", vars.free , "$") << endl;
+			printSet(cerr << "  Bound variables: ", vars.bound, "$") << endl;
+			cerr << "== Skolemize ==" << endl;
+		}
+		tgd.skolemize();
+		if (verbose) {
+			cerr << tgd << endl;
+			cerr << "  Bounds: ";
+			for (const auto &p : tgd.varBounders()) {
+				cerr << '{' << p.first << ": " << p.second.rel << ',' << p.second.id << "} "; 
+			}
+			cerr << endl;
+			cerr << "== SQL ==" << endl;
+			cerr << "  -- to stdout --" << endl;
+		}
 		cout << tgd.toSqlStatement(fc.source, fc.target);
-		cout << endl;
+		if (verbose) {
+			cerr << endl;
+		}
 	}
 	return 0;
 }
