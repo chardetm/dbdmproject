@@ -19,7 +19,7 @@ std::ostream& operator<<(std::ostream& stream, const Relation& rel) {
 
 std::ostream& operator<<(std::ostream& stream, const Schema& sc) {
 	for (const auto& rel : sc) {
-		stream << rel << std::endl;
+		stream << rel.second << std::endl;
 	}
 	return stream;
 }
@@ -31,7 +31,7 @@ std::ostream& operator<<(std::ostream& stream, const Value& val) {
 		stream << '$' << val.asVariable();
 	} else if (val.type() == Value::Type::SKOLEM) {
 		Value::SkolemReturnType sk = val.asSkolem();
-		stream << sk.name << '_' << sk.free_name << '(';
+		stream << "sk" << sk.name << '_' << sk.variable << '(';
 		bool first{true};
 		for (auto &e : sk.values) {
 			if (first) {

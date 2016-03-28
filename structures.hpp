@@ -1,11 +1,16 @@
 #pragma once
 
+
 #include <vector>
 #include <string>
+#include <sstream>
 #include <unordered_set>
 #include <unordered_map>
 #include <iostream>
 #include <cassert>
+
+#include "utils.hpp"
+
 
 typedef std::string variable_t;
 typedef int constant_t;
@@ -24,7 +29,7 @@ struct Relation {
 
 std::ostream& operator<<(std::ostream& stream, const Relation& rel);
 
-using Schema = std::vector<Relation>;
+using Schema = std::unordered_map<std::string, Relation>;
 
 std::ostream& operator<<(std::ostream& stream, const Schema& sc);
 
@@ -33,7 +38,7 @@ struct Value {
 	enum class Type {VARIABLE, CONSTANT, SKOLEM, NO_TYPE};
 	struct SkolemReturnType {
 		const std::string& name;
-		const std::string& free_name;
+		const variable_t& variable;
 		const std::vector<Value>& values;
 	};
 	
@@ -140,6 +145,12 @@ struct Tgd {
 		std::unordered_set<variable_t> bound;
 	};
 	
+	struct Bounder {
+		Bounder(std::string relation, size_t ident) : rel{relation}, id{ident} {}
+		std::string rel;
+		size_t id;
+	};
+	
 	Query from;
 	Query to;
 	
@@ -187,7 +198,7 @@ struct Tgd {
 		}
 		for (const Atom& at : to) {
 			for (const variable_t &var : at.variables()) {
-				if (from_v.count(var) == 0) {
+				if (from_v.find(var) == from_v.end()) {
 					fbvp.free.insert(var);
 				} else {
 					fbvp.bound.insert(var);
@@ -201,12 +212,89 @@ struct Tgd {
 		FreeBoundVarPartition fbvp = freeBoundVariables();
 		substitution_t substitution;
 		for (const variable_t &var : fbvp.free) {
-			substitution.insert({var, Value{std::string("sk") + std::to_string(current_skolem_++), var, {fbvp.bound.begin(), fbvp.bound.end()}}});
+			substitution.insert({var, Value{std::to_string(current_skolem_++), var, {fbvp.bound.begin(), fbvp.bound.end()}}});
 		}
 		for (Atom &at : to) {
 			at.skolemize(substitution);
 		}
 	}
+	
+	std::unordered_multimap<variable_t, Bounder> varBounders() const {
+		std::unordered_multimap<variable_t, Bounder> bounders;
+		for (const Atom& at : from) {
+			for (size_t i=0; i<at.args.size(); ++i) {
+				if (at.args.at(i).type() == Value::Type::VARIABLE)
+					bounders.insert({at.args.at(i).asVariable(), Bounder(at.name, i)});
+			} 
+		}
+		return bounders;
+	}
+	
+	std::string toSqlStatement (const Schema& fromSchema, const Schema& toSchema) const {
+		std::ostringstream stream;
+		
+		auto varBnds = varBounders();
+		
+		for (const auto &atom : to) {
+			const Relation& targetRelation = toSchema.at(atom.name);
+			stream << "INSERT INTO" << std::endl
+			       << tabs() << targetRelation << std::endl
+			       << "SELECT" << std::endl;
+			bool first{true};
+			size_t argId=0;
+			for (const auto &val : atom.args) {
+				if (first) {
+					first = false;
+				} else {
+					stream << "," << std::endl;
+				}
+				stream << tabs();
+				if (val.type() == Value::Type::VARIABLE) {
+					auto it = varBnds.find(val.asVariable());
+					if (it == varBnds.end()) {
+						throw std::runtime_error("Variable is not bounded...");
+					}
+					const Relation& rel(fromSchema.at(it->second.rel));
+					stream << rel.name << '.' << rel.attributes.at(it->second.id);
+				} else if (val.type() == Value::Type::CONSTANT) {
+					stream << val.asConstant();
+				} else if (val.type() == Value::Type::SKOLEM) {
+					auto skolem = val.asSkolem();
+					
+					stream << "'sk[" << skolem.name << ","<< targetRelation.name << '.' << targetRelation.attributes.at(argId) << "]('";
+					bool first2{true};
+					for (const auto& var : skolem.values) {
+						if (first2) {
+							first2 = false;
+						} else {
+							stream << " || ','";
+						}
+						if (var.type() != Value::Type::VARIABLE) {
+							throw std::logic_error("Logic error: Skolem subvalue is not a variable...");
+						}
+						auto it = varBnds.find(var.asVariable());
+						if (it == varBnds.end()) {
+							throw std::runtime_error("Skolem subvariable is not bounded...");
+						}
+						const Relation& rel(fromSchema.at(it->second.rel));
+						stream << " || " << rel.name << '.' << rel.attributes.at(it->second.id);
+					}
+					stream << " || ')'";
+				} else {
+					throw std::logic_error("Logic error while computing SQL: Value of type NONE.");
+				}
+				++argId;
+			}
+			
+			stream << std::endl << "FROM" << std::endl;
+			first = true;
+			
+			stream << std::endl << ";" << std::endl;
+		}
+		
+		return stream.str();
+	}
+	
 private:
 	static unsigned long long current_skolem_;
 };

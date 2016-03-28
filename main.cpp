@@ -5,28 +5,30 @@
 
 using namespace std;
 
-std::ostream& printFreeVariables(std::ostream& stream, const Tgd& tgd) {
+template <class SetType>
+std::ostream& printSet(std::ostream& stream, const SetType& set, string prefix="", string suffix="") {
 	bool first{true};
-	for (const auto &v : tgd.freeVariables()) {
+	for (const auto &v : set) {
 		if (first) {
 			first = false;
 		} else {
 			cout << ", ";
 		}
-		cout << '$' << v;
+		cout << prefix << v << suffix;
 	}
 	return stream;
 }
 
-std::ostream& printBoundVariables(std::ostream& stream, const Tgd& tgd) {
+template <class MapType>
+std::ostream& printMapKeys(std::ostream& stream, const MapType& map, string prefix="", string suffix="") {
 	bool first{true};
-	for (const auto &v : tgd.boundVariables()) {
+	for (const auto &p : map) {
 		if (first) {
 			first = false;
 		} else {
 			cout << ", ";
 		}
-		cout << '$' << v;
+		cout << prefix << p.first << suffix;
 	}
 	return stream;
 }
@@ -35,16 +37,22 @@ int main (int argc, char *argv[]) {
 	FileContent& fc = parseFile();
 	cerr << "====== FILE PARSED ======" << endl << endl << fc << endl << "====== END OF FILE ======" << endl;
 	cout << endl;
-	for (const Tgd &tgd : fc.mapping) {
-		cout << tgd << endl;
-		printFreeVariables (cout << "  Free variables : ", tgd) << endl;
-		printBoundVariables(cout << "  Bound variables: ", tgd) << endl;
-	}
-	cout << endl;
 	for (Tgd &tgd : fc.mapping) {
-		cout << tgd << endl;
+		cout << "==" << endl << tgd << endl;
+                auto vars = tgd.freeBoundVariables();
+		printSet(cout << "  Free variables : ", vars.free , "$") << endl;
+		printSet(cout << "  Bound variables: ", vars.bound, "$") << endl;
+		cout << "== Skolemize ==" << endl;
 		tgd.skolemize();
-		cout << "  Skolemized: " << tgd << endl;
+		cout << tgd << endl;
+		cout << "  Bounds: ";
+		for (const auto &p : tgd.varBounders()) {
+			cout << '{' << p.first << ": " << p.second.rel << ',' << p.second.id << "} "; 
+		}
+		cout << endl;
+		cout << "== SQL ==" << endl;
+		cout << tgd.toSqlStatement(fc.source, fc.target);
+		cout << endl;
 	}
 	return 0;
 }

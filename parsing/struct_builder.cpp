@@ -81,7 +81,8 @@ namespace struct_builder {
 	}
 	
 	void addRelation () {
-		schemas.at(ss?1:0).push_back(std::move(relation));
+		std::string relationName = relation.name;
+		schemas.at(ss?1:0).insert({std::move(relationName), std::move(relation)});
 		relation = Relation();
 	}
 	
