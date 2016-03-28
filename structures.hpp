@@ -281,15 +281,55 @@ struct Tgd {
 					}
 					stream << " || ')'";
 				} else {
-					throw std::logic_error("Logic error while computing SQL: Value of type NONE.");
+					throw std::logic_error("Logic error while computing SQL: Value of type NONE...");
 				}
 				++argId;
 			}
 			
 			stream << std::endl << "FROM" << std::endl;
-			first = true;
 			
-			stream << std::endl << ";" << std::endl;
+			std::unordered_set<std::string> done;
+			
+			first = true;
+			for (const Atom& fromAtom : from) {
+				stream << tabs();
+				if (!first) {
+					stream << "INNER JOIN ";
+				}
+				stream << fromAtom.name << std::endl;
+				if (first) {
+					first = false;
+					continue;
+				}
+				bool first2{true};
+				for (const Value& arg : fromAtom.args) {
+					if (arg.type() != Value::Type::VARIABLE) continue;
+					auto range = varBnds.equal_range(arg.asVariable());
+					if (range.first == varBnds.end()) {
+						throw std::logic_error("Logic error while computing SQL: Variable is not bound...");
+					}
+					for (auto it = range.first; it != range.second; ++it) {
+						const std::string& otherRelation = it->second.rel;
+						size_t otherId = it->second.id;
+						if (done.count(otherRelation) > 0) {
+							if (first2) {
+								stream << tabs() << "ON (" << std::endl << tabs(2);
+								first2 = false;
+							} else {
+								stream << tabs(2) << "AND ";
+							}
+							stream << fromAtom.name << "." << arg.asVariable() << " = " << otherRelation << "." << fromSchema.at(otherRelation).attributes.at(otherId) << std::endl;
+							break;
+						}
+					}
+				}
+				if (!first2) { // Found something, "ON (" is open, must close with ")"
+					stream << tabs() << ")" << std::endl;
+				}
+				done.insert(fromAtom.name);
+			}
+			
+			stream << ";" << std::endl;
 		}
 		
 		return stream.str();
